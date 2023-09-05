@@ -1,25 +1,42 @@
+import csv
+import time
+
 import boto3
-import argparse
+
+boto3.setup_default_session(profile_name="default")
+S3 = boto3.resource('s3')
+
 
 def clear_bucket_content(bucket_name):
-    s3 = boto3.client('s3')
+    bucket = S3.Bucket(bucket_name)
 
-    response = s3.list_objects_v2(Bucket=bucket_name)
-    if 'Contents' in response:
-        objects = [{'Key': obj['Key']} for obj in response['Contents']]
-        s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-        num_objects = len(objects)
-        print(f"Deleted {num_objects} objects")
+    if bucket.creation_date:
+        bucket.objects.all().delete()
+    else:
+        raise Exception("Not found")
 
-def main():
-    parser = argparse.ArgumentParser(description='Clear content of S3 buckets')
-    parser.add_argument('buckets', nargs='+', help='List of bucket names')
-    args = parser.parse_args()
-
-    for bucket_name in args.buckets:
-        print(f"Clearing content of bucket: {bucket_name}")
-        clear_bucket_content(bucket_name)
-        print(f"Content of bucket {bucket_name} cleared")
 
 if __name__ == '__main__':
-    main()
+    buckets = ['turbo-application-apis-catalogs-bucket']
+
+    with open('empty_bucket.csv', 'a') as outfile:
+        writer = csv.DictWriter(outfile, fieldnames=['bucket_name', 'status'])
+        writer.writeheader()
+
+        for idx, bucket_name in enumerate(buckets, 1):
+            write_row = {
+                'bucket_name': bucket_name,
+                'status': 'ok'
+            }
+            try:
+                print(f"Clearing content of bucket: {bucket_name}")
+                clear_bucket_content(bucket_name)
+            except Exception as e:
+                print(e)
+                write_row['status'] = 'failed'
+
+            writer.writerow(write_row)
+            if idx % 100 == 0:
+                print(f'Processed {idx}')
+                outfile.flush()
+            time.sleep(1)
