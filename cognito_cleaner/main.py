@@ -1,34 +1,39 @@
 import boto3
-import argparse
 
 def clear_all_users(user_pool_id):
     cognito = boto3.client('cognito-idp')
 
-    response = cognito.list_users(
-        UserPoolId=user_pool_id
-    )
+    try:
+        response = cognito.list_users(
+            UserPoolId=user_pool_id
+        )
+    except Exception as e:
+        print(f"cognito,{user_pool_id},user,error,{e}")
+        return
 
     for user in response['Users']:
-        username = user['Username']
-        cognito.admin_delete_user(
-            UserPoolId=user_pool_id,
-            Username=username
-        )
-        print(f"User '{username}' deleted.")
+        try:
+            username = user['Username']
+            cognito.admin_delete_user(
+                UserPoolId=user_pool_id,
+                Username=username
+            )
+        except Exception as e:
+            print(f"cognito,{user_pool_id},{username},error,{e}")
+            return
+        print(f"cognito,{user_pool_id},{username},success,-")
 
-def main():
-    parser = argparse.ArgumentParser(description='Clear pools users')
-    parser.add_argument('pools', nargs='+',
-                        help='List pools_users_id ex. us-east-1_kraV5RvYq')
-    args = parser.parse_args()
 
-    for pool in args.pools:
-        print(f"Clearing content of tables: {pool}")
+def main(pools):
+    print(f"Clearing content of tables: {pools}")
+    for pool in pools:
         clear_all_users(pool)
-        print(f"Content of pools {pool} cleared")
+    print(f"Content of pools {pools} cleared")
 
 
 if __name__ == '__main__':
-    main()
-
+    pools = [
+        "us-east-1_kraV5RvYq"
+    ]
+    main(pools)
 

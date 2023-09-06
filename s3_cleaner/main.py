@@ -1,25 +1,36 @@
 import boto3
-import argparse
 
 def clear_bucket_content(bucket_name):
     s3 = boto3.client('s3')
+    try:
+        response = s3.list_objects_v2(Bucket=bucket_name)
+    except Exception as e:
+        print(f"s3,{bucket_name}, files,error,{e}")
+        return
 
-    response = s3.list_objects_v2(Bucket=bucket_name)
     if 'Contents' in response:
-        objects = [{'Key': obj['Key']} for obj in response['Contents']]
-        s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-        num_objects = len(objects)
-        print(f"Deleted {num_objects} objects")
+        try:
+            objects = [{'Key': obj['Key']} for obj in response['Contents']]
+            num_objects = len(objects)
+            s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
+        except Exception as e:
+            print(f"s3,{bucket_name},{num_objects} files,error,{e}")
+            return
+        print(f"s3,{bucket_name},{num_objects} files,success,objects deleted")
 
-def main():
-    parser = argparse.ArgumentParser(description='Clear content of S3 buckets')
-    parser.add_argument('buckets', nargs='+', help='List of bucket names')
-    args = parser.parse_args()
-
-    for bucket_name in args.buckets:
-        print(f"Clearing content of bucket: {bucket_name}")
+def main(buckets):
+    print(f"Clearing content of bucket: {buckets}")
+    for bucket_name in buckets:
         clear_bucket_content(bucket_name)
-        print(f"Content of bucket {bucket_name} cleared")
+    print(f"Content of bucket {buckets} cleared")
+
 
 if __name__ == '__main__':
-    main()
+    buckets = [
+        "test-cleaner-01",
+        "test-cleaner-02",
+        "test-cleaner-03",
+        "test-cleaner-04",
+    ]
+    main(buckets)
+
