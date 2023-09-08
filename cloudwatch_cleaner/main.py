@@ -2,23 +2,24 @@ import boto3
 
 def delete_log_group(log_group_name):
     cloudwatch_logs = boto3.client('logs')
-
-    try: 
-        response = cloudwatch_logs.describe_log_streams(
-        logGroupName=log_group_name)
-    except Exception as e:
-        print(f"cloudwatch  1,{log_group_name}, - ,error,{e}")
-        return
-
-    for log_stream in response['logStreams']:
-        try:
-            log_stream_name = log_stream['logStreamName']
-            cloudwatch_logs.delete_log_stream(
-                logGroupName=log_group_name, logStreamName=log_stream_name)
+    while True:
+        try: 
+            response = cloudwatch_logs.describe_log_streams(logGroupName=log_group_name)
+            if len(response['logStreams']) == 0:
+                break
         except Exception as e:
-          print(f"cloudwatch,{log_group_name}, - ,error,{e}")
-          return
-        print(f"cloudwatch,{log_group_name}, {log_stream_name} ,success,-")
+            print(f"cloudwatch  1,{log_group_name}, - ,error,{e}")
+            break
+
+        for log_stream in response['logStreams']:
+            try:
+                log_stream_name = log_stream['logStreamName']
+                cloudwatch_logs.delete_log_stream(
+                    logGroupName=log_group_name, logStreamName=log_stream_name)
+            except Exception as e:
+                print(f"cloudwatch,{log_group_name}, - ,error,{e}")
+                break
+            print(f"cloudwatch,{log_group_name}, {log_stream_name} ,success,-")
 
 
 def main(log_groups):

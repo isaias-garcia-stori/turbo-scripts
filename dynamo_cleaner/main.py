@@ -7,18 +7,19 @@ def clear_all_items(key, table_name):
         table = dynamodb.Table(table_name)
         response = table.scan()
         items = response['Items']
-    except:
+    except Exception as e:
         print(f"dynamo,{table_name},getting key,error,{e}")
         return
 
     for item in items:
+        id = item[key]
         try:
             table.delete_item(Key={key: item[key]})
-            id = item[key]
         except Exception as e:
             print(f"dynamo,{table_name},user {id},error,{e}")
             continue
         print(f"dynamo,{table_name},user {id},success,deleted")
+
 
 def get_dynamodb_primary_key(table_name):
     dynamodb = boto3.client('dynamodb')

@@ -14,11 +14,11 @@ def create_random_user(user_pool_id):
     username = random_string(8)
     password = random_string(10)
     password = f"{password}{random.randint(1, 100)}$"
-    email = f"{username}@example.com"
+    email = f"{username}@yopmail.com"
 
-    print(username, password, email)
+    # print(username, password, email)
     response = cognito.sign_up(
-        ClientId='70egeg5tqsii0vp5vp456apr82',  # Replace with your actual Cognito App Client ID
+        ClientId='2302f8vip4e9ukae76eatuhbvo',  # Replace with your actual Cognito App Client ID
         Username=username.lower(),
         Password=f"{password}{random.randint(1, 100)}",
         UserAttributes=[
@@ -26,12 +26,12 @@ def create_random_user(user_pool_id):
         ]
     )
 
-    print("User created:", response)
+    print("User created -", "email:", email, "response:", response)
 
 
 def main():
     # Replace with your actual Cognito User Pool ID
-    user_pool_id = 'test-1'
+    user_pool_id = 'us-west-2_y04gPghAZ'
     for _ in range(100):  # Change the number of users you want to create
         create_random_user(user_pool_id)
 

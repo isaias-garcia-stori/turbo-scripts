@@ -41,11 +41,11 @@ def create_log_stream(log_group_name, log_stream_name):
     print("Log Stream created:", response)
 
 def main():
-    num_events = 50
-    num_log_groups = 5
+    num_events = 5
+    num_log_groups = 2
     for log in range(num_log_groups):
         log_group_name = f"my-log-group-{log}"
-        create_log_group(log_group_name)
+        # create_log_group(log_group_name)
         for stream in range(num_log_groups):
             log_stream_name = f"my-log-stream-{log}-{stream}"
             create_log_stream(log_group_name, log_stream_name)
