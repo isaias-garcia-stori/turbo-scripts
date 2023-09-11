@@ -2,37 +2,38 @@ import boto3
 
 def clear_bucket_content(bucket_name):
     s3 = boto3.client('s3')
-    is_first = True
-    continuation_token = "dummy"
-    is_truncated = False
+    continuation_token = None
     while True:
         try:
-            if is_first:
+            if continuation_token:
                 response = s3.list_objects_v2(
                     Bucket=bucket_name,
-                    MaxKeys=30,
+                    ContinuationToken=continuation_token
                 )
             else:
                 response = s3.list_objects_v2(
                     Bucket=bucket_name,
-                    MaxKeys=30,
-                    ContinuationToken=continuation_token
                 )
-            print(response['KeyCount'], response['IsTruncated'])
-            continuation_token = response['NextContinuationToken']
         except Exception as e:
-            print(f"s3,{bucket_name}, files,error,{e}")
+            print(f"s3, {bucket_name}, files, error, {e}")
             break
 
-        # if 'Contents' in response:
-        #     try:
-        #         objects = [{'Key': obj['Key']} for obj in response['Contents']]
-        #         num_objects = len(objects)
-        #         s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
-        #     except Exception as e:
-        #         print(f"s3,{bucket_name},{num_objects} files,error,{e}")
-        #         break
-        #     print(f"s3, {bucket_name},{num_objects} files, success, objects deleted")
+        if 'Contents' in response:
+            try:
+                objects = [{'Key': obj['Key']} for obj in response['Contents']]
+                num_objects = len(objects)
+                s3.delete_objects(Bucket=bucket_name, Delete={'Objects': objects})
+            except Exception as e:
+                print(f"s3,{bucket_name}, {num_objects:03d} files, error, {e}")
+                break
+            print(
+                f"s3, {bucket_name}, {num_objects:03d} files, success, objects deleted")
+
+        if not response.get('IsTruncated', False):
+            break
+    
+        continuation_token = response['NextContinuationToken']
+
 
 def main(buckets):
     print(f"Clearing content of bucket: {buckets}")

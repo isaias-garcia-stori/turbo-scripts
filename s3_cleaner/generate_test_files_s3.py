@@ -32,17 +32,17 @@ def upload_to_s3(bucket_name, local_file_path, s3_file_name):
 
 def main():
     rows = 10
-    files = 10
+    files = 1000
     buckets = ["test-cleaner-01","test-cleaner-02",
                "test-cleaner-03","test-cleaner-04"]
     
     for file_id in range(files):
         random_data = generate_random_data(rows)
-        csv_filename = f"random_data_{file_id}.csv"
+        csv_filename = f"r_d_{file_id}.csv"
         create_csv_file(random_data, csv_filename)
 
         s3_bucket_name = random.choice(buckets)
-        s3_file_name = f"random_data_{file_id}.csv"
+        s3_file_name = f"r_d_{file_id}.csv"
         upload_to_s3(s3_bucket_name, csv_filename, s3_file_name)
 
         print(

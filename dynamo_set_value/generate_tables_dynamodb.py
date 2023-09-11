@@ -36,7 +36,7 @@ def insert_random_data(table_name, num_items):
     for _ in range(num_items):
         item = {
             'id': random.randint(1, 100),
-            'data': ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+            'new_data': ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
         }
         table.put_item(Item=item)
         print(f"Inserted item: {item}")
@@ -46,7 +46,7 @@ def main():
     for table in range(5):
         table_name = f"RandomDataTable-{table}"
         # create_table(table_name)
-        # time.sleep(20)
+        # time.sleep(10)
         print("Waiting")
         num_items = 2000
         insert_random_data(table_name, num_items)
