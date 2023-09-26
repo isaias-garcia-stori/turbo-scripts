@@ -17,12 +17,6 @@ def clear_all_users(user_pool_id, users_batch_deletion_count):
                     Limit=users_batch_deletion_count,
                     PaginationToken=pagination_token
                 )
-
-            if len(response['Users']) == 0:
-                break
-            else: 
-                pagination_token = response['PaginationToken']
-            is_first = False
         except Exception as e:
             print(f"cognito, {user_pool_id}, user, error, {e}")
             break
@@ -40,17 +34,23 @@ def clear_all_users(user_pool_id, users_batch_deletion_count):
             
             print(f"cognito, {user_pool_id}, {username}, success,-")
 
+        if not response.get('PaginationToken',None):
+            break
+
+        pagination_token = response['PaginationToken']
+        is_first = False
+
 
 def main(pools):
     print(f"Clearing content of pools: {pools}")
     for pool in pools:
-        clear_all_users(pool, 20)
+        clear_all_users(pool, 1)
     print(f"Content of pools {pools} cleared")
 
 
 if __name__ == '__main__':
     pools = [
-        "us-west-2_y04gPghAZ"
+        "us-west-2_W3k66Bo1F"
     ]
     main(pools)
 
