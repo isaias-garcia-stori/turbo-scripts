@@ -29,16 +29,18 @@ class DynamoUpdater:
                 not isinstance(table_name, str) or not isinstance(update_body, dict)
             ) or (update_body == {} or table_name == ""):
                 self.logger.error(
-                    f"table {table_name} skipped, due to missing information or wrong type"
+                    f"dynamo: table {table_name} skipped, due to missing information or wrong type"
                 )
             else:
-                self.logger.info(f"Update content of table: {table_name}")
+                self.logger.info(f"dynamo: updating content of table: {table_name}")
                 key = self.get_dynamodb_primary_key(table_name=table_name)
                 if key is not None:
                     self.update_items(
                         key, table_name=table_name, update_body=update_body
                     )
-                    self.logger.info(f"Content of table {table_name} cleared")
+                    self.logger.info(
+                        f"dynamo: content of table: {table_name} updated successfully"
+                    )
 
     def update_items(self, key: str, table_name: str, update_body: dict) -> None:
         """
@@ -46,11 +48,10 @@ class DynamoUpdater:
         table_name: name of the table to update
         update_body: dictionary with the fields to update
         """
-        count = 0
         try:
             table = self.dynamodb_resource.Table(table_name)
         except Exception as e:
-            self.logger.error(f"dynamo, 0, {table_name}, table, error, {e}")
+            self.logger.error(f"dynamo: {table_name}, error, {e}")
             return
 
         last_evaluated_key = None
@@ -64,14 +65,11 @@ class DynamoUpdater:
                     response = table.scan(Limit=500)
                 items = response["Items"]
             except Exception as e:
-                self.logger.error(
-                    f"dynamo, {count}, {table_name}, getting key, error, {e}"
-                )
+                self.logger.error(f"dynamo: {table_name}, error, {e}")
                 return
 
             for item in items:
                 identifier = item[key]
-                count += 1
                 try:
                     for field, value in update_body.items():
                         table.update_item(
@@ -80,13 +78,8 @@ class DynamoUpdater:
                             ExpressionAttributeValues={":valor": value},
                         )
                 except Exception as e:
-                    self.logger.error(
-                        f"dynamo, {table_name}, user {identifier}, error, {e}"
-                    )
+                    self.logger.error(f"dynamo: {table_name}, error, {e}")
                     continue
-                self.logger.info(
-                    f"dynamo, {count}, {table_name}, user {identifier}, success, updated"
-                )
 
             if not response.get("LastEvaluatedKey", None):
                 break
@@ -102,7 +95,7 @@ class DynamoUpdater:
             response = self.dynamo_client.describe_table(TableName=table_name)
             primary_key = response["Table"]["KeySchema"][0]["AttributeName"]
         except Exception as e:
-            self.logger.error(f"dynamo, 0, {table_name},getting key,error,{e}")
+            f"dynamo: {table_name}, error, {e}"
             return
 
         return primary_key

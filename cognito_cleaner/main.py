@@ -13,7 +13,9 @@ class CognitoCleaner:
         self.client = boto3.client("cognito-idp")
 
     def run(self) -> None:
+        self.logger.info(f"cognito: clearing pool_id: {self.user_pool}")
         self.clear_all_users(users_batch_deletion_count=50)
+        self.logger.info(f"cognito: clearance pool_id: {self.user_pool} succeded")
 
     def clear_all_users(self, users_batch_deletion_count: int) -> None:
         is_first = True
@@ -32,7 +34,7 @@ class CognitoCleaner:
                         PaginationToken=pagination_token,
                     )
             except Exception as e:
-                self.logger.error(f"cognito, {self.user_pool}, user, error, {e}")
+                self.logger.error(f"cognito: {self.user_pool}, error, {e}")
                 break
 
             for user in response["Users"]:
@@ -42,12 +44,8 @@ class CognitoCleaner:
                         UserPoolId=self.user_pool, Username=username
                     )
                 except Exception as e:
-                    self.logger.error(
-                        f"cognito, {self.user_pool}, {username}, error, {e}"
-                    )
+                    self.logger.error(f"cognito: {self.user_pool}, error, {e}")
                     return
-
-                self.logger.info(f"cognito, {self.user_pool}, {username}, success,-")
 
             if not response.get("PaginationToken", None):
                 break

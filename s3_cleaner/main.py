@@ -21,9 +21,11 @@ class S3Cleaner:
         Clear the content of the buckets
         """
         for bucket_name in self.buckets:
-            self.logger.info(f"Clearing content of bucket: {bucket_name}")
+            self.logger.info(f"s3: clearing content of bucket: {bucket_name}")
             self.clear_bucket_content(bucket_name)
-        self.logger.info(f"Content of bucket {bucket_name} cleared")
+            self.logger.info(
+                f"s3: content of bucket: {bucket_name} cleared successfully"
+            )
 
     def clear_bucket_content(self, bucket_name: str) -> None:
         """
@@ -43,24 +45,18 @@ class S3Cleaner:
                         Bucket=bucket_name,
                     )
             except Exception as e:
-                self.logger.error(f"s3, {bucket_name}, files, error, {e}")
+                self.logger.error(f"s3: {bucket_name}, error, {e}")
                 break
 
             if "Contents" in response:
                 try:
                     objects = [{"Key": obj["Key"]} for obj in response["Contents"]]
-                    num_objects = len(objects)
                     self.client.delete_objects(
                         Bucket=bucket_name, Delete={"Objects": objects}
                     )
                 except Exception as e:
-                    self.logger.error(
-                        f"s3,{bucket_name}, {num_objects:03d} files, error, {e}"
-                    )
+                    self.logger.error(f"s3: {bucket_name}, error, {e}")
                     break
-                self.logger.info(
-                    f"s3, {bucket_name}, {num_objects:03d} files, success, objects deleted"
-                )
 
             if not response.get("IsTruncated", False):
                 break

@@ -32,11 +32,11 @@ def insert_random_data(table_name, num_items):
 
 
 def main():
-    for table in range(1, 2):
+    for table in range(3):
         table_name = f"RandomDataTable-{table}"
         create_table(table_name)
-        time.sleep(20)
-        # print("Waiting")
+        print("Waiting")
+        time.sleep(10)
         num_items = 20
         insert_random_data(table_name, num_items)
 

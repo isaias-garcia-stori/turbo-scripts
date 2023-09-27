@@ -1,5 +1,5 @@
 venv
 file.cvs
-.DS*
+.DS_Store
 *.txt
 *.log

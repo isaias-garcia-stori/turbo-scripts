@@ -14,23 +14,21 @@ class DynamoCleaner:
         Clear the content of the tables
         """
         for table in self.tables:
-            self.logger.info(f"Clearing content of tables: {table}")
+            self.logger.info(f"dynamo: clearing content of table: {table}")
             keys = self.get_dynamodb_primary_key(table)
             if keys != []:
                 self.clear_all_items(keys, table)
-        self.logger.info(f"Content of table: {table} cleared")
+            self.logger.info(f"dynamo: content of table: {table} cleared")
 
     def clear_all_items(self, keys: list, table_name: str) -> None:
         """
         keys: list of primary/partition keys of the table
         table_name: name of the table to clear
         """
-        count = 0
-
         try:
             table = self.dynamodb_resource.Table(table_name)
         except Exception as e:
-            self.logger.error(f"dynamo, 0, {table_name}, table, error,{ e}")
+            self.logger.error(f"dynamo: {table_name}, error, {e}")
             return
 
         last_evaluated_key = None
@@ -44,9 +42,7 @@ class DynamoCleaner:
                     response = table.scan(Limit=500)
                 items = response["Items"]
             except Exception as e:
-                self.logger.error(
-                    f"dynamo, {count}, {table_name}, getting key, error,{ e}"
-                )
+                self.logger.error(f"dynamo: {table_name}, error, {e}")
                 return
 
             for item in items:
@@ -56,13 +52,8 @@ class DynamoCleaner:
                         delete_json[key_name] = item[key_name]
                     table.delete_item(Key=delete_json)
                 except Exception as e:
-                    self.logger.error(
-                        f"dynamo, {table_name}, user {delete_json}, error, {e}"
-                    )
+                    self.logger.error(f"dynamo: {table_name}, error, {e}")
                     continue
-                self.logger.info(
-                    f"dynamo, {count}, {table_name}, user {delete_json}, success, deleted"
-                )
 
             if not response.get("LastEvaluatedKey", None):
                 break
@@ -75,7 +66,7 @@ class DynamoCleaner:
                 key["AttributeName"] for key in response["Table"]["KeySchema"]
             ]
         except Exception as e:
-            self.logger.error(f"dynamo, 0, {table_name}, getting key, error, {e}")
+            self.logger.error(f"dynamo: {table_name}, error, {e}")
             return
 
         return primary_keys

@@ -5,6 +5,7 @@ from s3_cleaner.main import S3Cleaner
 from dynamo_update_table_columns.main import DynamoUpdater
 from dynamo_cleaner.main import DynamoCleaner
 from cognito_cleaner.main import CognitoCleaner
+
 # from cloudwatch_cleaner.main import CloudwatchCleaner
 
 # Define data to be cleared or updated
@@ -22,7 +23,9 @@ dynamo_tables_to_clear = [
     "powerup-sofipo-email-prod",
 ]
 
-dynamo_tables_to_update = [("powerup-data-prod", {"allowed_sofipo": False, "sofipo_id": None})]
+dynamo_tables_to_update = [
+    ("powerup-data-prod", {"allowed_sofipo": False, "sofipo_id": None})
+]
 
 s3_buckets_to_clear = [
     "prod-turbo-kyc-auto-vendor-data",
@@ -63,8 +66,8 @@ def build_logger() -> logging.Logger:
 logger = build_logger()
 
 if __name__ == "__main__":
-    CognitoCleaner(user_pool_to_be_cleared, logger).run()
     S3Cleaner(s3_buckets_to_clear, logger).run()
-    DynamoUpdater(dynamo_tables_to_update, logger).run()
     DynamoCleaner(dynamo_tables_to_clear, logger).run()
+    CognitoCleaner(user_pool_to_be_cleared, logger).run()
+    DynamoUpdater(dynamo_tables_to_update, logger).run()
     # CloudwatchCleaner(cloudwatch_log_groups_to_clear, logger).run()
