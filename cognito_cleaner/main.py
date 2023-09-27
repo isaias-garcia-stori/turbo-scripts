@@ -1,56 +1,56 @@
 import boto3
+import logging
 
-def clear_all_users(user_pool_id, users_batch_deletion_count):
-    cognito = boto3.client('cognito-idp')
-    is_first = True
-    pagination_token = ""
-    while True:
-        try:
-            if is_first:
-                response = cognito.list_users(
-                    UserPoolId=user_pool_id,
-                    Limit=users_batch_deletion_count,
-                )
-            else:
-                response = cognito.list_users(
-                    UserPoolId=user_pool_id,
-                    Limit=users_batch_deletion_count,
-                    PaginationToken=pagination_token
-                )
-        except Exception as e:
-            print(f"cognito, {user_pool_id}, user, error, {e}")
-            break
 
-        for user in response['Users']:
+class CognitoCleaner:
+    """
+    Class to clear content of cognito user pools
+    """
+
+    def __init__(self, user_pool: str, logger: logging.Logger) -> None:
+        self.user_pool = user_pool
+        self.logger = logger
+        self.client = boto3.client("cognito-idp")
+
+    def run(self) -> None:
+        self.clear_all_users(users_batch_deletion_count=50)
+
+    def clear_all_users(self, users_batch_deletion_count: int) -> None:
+        is_first = True
+        pagination_token = ""
+        while True:
             try:
-                username = user['Username']
-                cognito.admin_delete_user(
-                    UserPoolId=user_pool_id,
-                    Username=username
-                )
+                if is_first:
+                    response = self.client.list_users(
+                        UserPoolId=self.user_pool,
+                        Limit=users_batch_deletion_count,
+                    )
+                else:
+                    response = self.client.list_users(
+                        UserPoolId=self.user_pool,
+                        Limit=users_batch_deletion_count,
+                        PaginationToken=pagination_token,
+                    )
             except Exception as e:
-                print(f"cognito, {user_pool_id}, {username}, error, {e}")
-                return
-            
-            print(f"cognito, {user_pool_id}, {username}, success,-")
+                self.logger.error(f"cognito, {self.user_pool}, user, error, {e}")
+                break
 
-        if not response.get('PaginationToken',None):
-            break
+            for user in response["Users"]:
+                try:
+                    username = user["Username"]
+                    self.client.admin_delete_user(
+                        UserPoolId=self.user_pool, Username=username
+                    )
+                except Exception as e:
+                    self.logger.error(
+                        f"cognito, {self.user_pool}, {username}, error, {e}"
+                    )
+                    return
 
-        pagination_token = response['PaginationToken']
-        is_first = False
+                self.logger.info(f"cognito, {self.user_pool}, {username}, success,-")
 
+            if not response.get("PaginationToken", None):
+                break
 
-def main(pools):
-    print(f"Clearing content of pools: {pools}")
-    for pool in pools:
-        clear_all_users(pool, 1)
-    print(f"Content of pools {pools} cleared")
-
-
-if __name__ == '__main__':
-    pools = [
-        "us-west-2_W3k66Bo1F"
-    ]
-    main(pools)
-
+            pagination_token = response["PaginationToken"]
+            is_first = False

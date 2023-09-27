@@ -2,3 +2,4 @@ venv
 file.cvs
 .DS*
 *.txt
+*.log

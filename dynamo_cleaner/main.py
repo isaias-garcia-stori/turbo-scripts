@@ -1,81 +1,81 @@
 import boto3
+import logging
 
-def clear_all_items(keys, table_name):
-    count = 0
-    dynamodb = boto3.resource('dynamodb')
-    try:
-        table = dynamodb.Table(table_name)
-    except Exception as e:
-        print(f"dynamo, 0, {table_name}, table, error,{ e}")
-        return
-    
-    last_evaluated_key = None
-    while True:
+
+class DynamoCleaner:
+    def __init__(self, tables: list[str], logger: logging.Logger):
+        self.tables = tables
+        self.logger = logger
+        self.dynamo_client = boto3.client("dynamodb")
+        self.dynamodb_resource = boto3.resource("dynamodb")
+
+    def run(self) -> None:
+        """
+        Clear the content of the tables
+        """
+        for table in self.tables:
+            self.logger.info(f"Clearing content of tables: {table}")
+            keys = self.get_dynamodb_primary_key(table)
+            if keys != []:
+                self.clear_all_items(keys, table)
+        self.logger.info(f"Content of table: {table} cleared")
+
+    def clear_all_items(self, keys: list, table_name: str) -> None:
+        """
+        keys: list of primary/partition keys of the table
+        table_name: name of the table to clear
+        """
+        count = 0
+
         try:
-            if last_evaluated_key:
-                response = table.scan(
-                    Limit=500, 
-                    ExclusiveStartKey=response['LastEvaluatedKey'])
-            else:
-                response = table.scan(Limit=500)
-            items = response['Items']
+            table = self.dynamodb_resource.Table(table_name)
         except Exception as e:
-            print(f"dynamo, {count}, {table_name}, getting key, error,{ e}")
+            self.logger.error(f"dynamo, 0, {table_name}, table, error,{ e}")
             return
-        
-        for item in items:
+
+        last_evaluated_key = None
+        while True:
             try:
-                delete_json = {}
-                for key_name in keys:
-                    delete_json[key_name] = item[key_name]
-                table.delete_item(Key=delete_json)
+                if last_evaluated_key:
+                    response = table.scan(
+                        Limit=500, ExclusiveStartKey=response["LastEvaluatedKey"]
+                    )
+                else:
+                    response = table.scan(Limit=500)
+                items = response["Items"]
             except Exception as e:
-                print(f"dynamo, {table_name}, user {delete_json}, error, {e}")
-                continue
-            print(f"dynamo, {count}, {table_name}, user {delete_json}, success, deleted")
+                self.logger.error(
+                    f"dynamo, {count}, {table_name}, getting key, error,{ e}"
+                )
+                return
 
-        if not response.get('LastEvaluatedKey', None):
-            break
-        last_evaluated_key = response['LastEvaluatedKey']
+            for item in items:
+                try:
+                    delete_json = {}
+                    for key_name in keys:
+                        delete_json[key_name] = item[key_name]
+                    table.delete_item(Key=delete_json)
+                except Exception as e:
+                    self.logger.error(
+                        f"dynamo, {table_name}, user {delete_json}, error, {e}"
+                    )
+                    continue
+                self.logger.info(
+                    f"dynamo, {count}, {table_name}, user {delete_json}, success, deleted"
+                )
 
+            if not response.get("LastEvaluatedKey", None):
+                break
+            last_evaluated_key = response["LastEvaluatedKey"]
 
-def get_dynamodb_primary_key(table_name):
-    dynamodb = boto3.client('dynamodb')
+    def get_dynamodb_primary_key(self, table_name):
+        try:
+            response = self.dynamo_client.describe_table(TableName=table_name)
+            primary_keys = [
+                key["AttributeName"] for key in response["Table"]["KeySchema"]
+            ]
+        except Exception as e:
+            self.logger.error(f"dynamo, 0, {table_name}, getting key, error, {e}")
+            return
 
-    try:
-        response = dynamodb.describe_table(TableName=table_name)
-        primary_keys = [key['AttributeName'] for key in response['Table']['KeySchema']]
-    except Exception as e:
-        print(f"dynamo, 0, {table_name},getting key,error,{e}")
-        return
-
-    return primary_keys
-
-
-def main(tables):
-    print(f"Clearing content of tables: {tables}")
-
-    for table in tables:
-        keys = get_dynamodb_primary_key(table)
-        if keys == []:
-            continue
-        clear_all_items(keys, table)
-    print(f"Content of tables {tables} cleared")
-
-
-if __name__ == '__main__':
-    tables = [
-        # "sofipo-mobile-notifications-log-table",
-        # "turbo-user-notifications-config-table",
-        # "turbo-kyc-auto-ValidationResult-dev",
-        # "turbo-kyc-auto-IndexedFaces-dev",
-        # "turbo-user-contacts-table-dev",
-        # "turbo-kyc-auto-ValidationResult-dev",
-        # "deposits-txns-pending-table-dev",
-        # "deposits-txns-fraud-data-table-dev",
-        # "deposits-powerup-integration",
-        # "powerup-sofipo-data-dev",
-        # "powerup-sofipo-email-dev",
-    ]
-    main(tables)
-
+        return primary_keys

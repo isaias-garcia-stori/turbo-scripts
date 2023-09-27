@@ -5,11 +5,11 @@ import string
 
 def random_string(length):
     letters = string.ascii_letters
-    return ''.join(random.choice(letters) for _ in range(length))
+    return "".join(random.choice(letters) for _ in range(length))
 
 
 def create_random_user(user_pool_id):
-    cognito = boto3.client('cognito-idp')
+    cognito = boto3.client("cognito-idp")
 
     username = random_string(8)
     password = random_string(10)
@@ -18,12 +18,10 @@ def create_random_user(user_pool_id):
 
     # print(username, password, email)
     response = cognito.sign_up(
-        ClientId='2302f8vip4e9ukae76eatuhbvo',  # Replace with your actual Cognito App Client ID
+        ClientId="2302f8vip4e9ukae76eatuhbvo",  # Replace with your actual Cognito App Client ID
         Username=username.lower(),
         Password=f"{password}{random.randint(1, 100)}",
-        UserAttributes=[
-            {'Name': 'email', 'Value': email}
-        ]
+        UserAttributes=[{"Name": "email", "Value": email}],
     )
 
     print("User created -", "email:", email, "response:", response)
@@ -31,10 +29,10 @@ def create_random_user(user_pool_id):
 
 def main():
     # Replace with your actual Cognito User Pool ID
-    user_pool_id = 'us-west-2_y04gPghAZ'
-    for _ in range(100):  # Change the number of users you want to create
+    user_pool_id = "us-west-2_y04gPghAZ"
+    for _ in range(56):  # Change the number of users you want to create
         create_random_user(user_pool_id)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
