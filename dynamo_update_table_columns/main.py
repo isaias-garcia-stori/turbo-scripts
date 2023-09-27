@@ -1,9 +1,11 @@
 import boto3
 
-FIELD = "new_data"
-VALUE = None
+update = {
+    "new_data": "AlexisTest",
+    "allowed": True,
+}
 
-def clear_all_items(key, table_name):
+def update_items(key, table_name):
     cont = 0
     dynamodb = boto3.resource('dynamodb')
     try:
@@ -27,29 +29,31 @@ def clear_all_items(key, table_name):
             return
         
         for item in items:
-            id = item[key]
+            key_id = item[key]
             cont += 1
             try:
-                table.update_item(
-                    Key={
-                        key: item[key]
-                    },
-                    UpdateExpression=f"SET {FIELD} = :valor",
-                    ExpressionAttributeValues={
-                        ':valor': VALUE
-                    }
-                )
+                for field, value in update.items():
+                    table.update_item(
+                        Key={
+                            key: key_id
+                        },
+                        UpdateExpression=f"SET {field} = :valor",
+                        ExpressionAttributeValues={
+                            ':valor': value
+                        }
+                    )
             except Exception as e:
-                print(f"dynamo, {table_name}, user {id}, error, {e}")
+                print(f"dynamo, {table_name}, user {key_id}, error, {e}")
                 continue
-            print(f"dynamo, {cont}, {table_name}, user {id}, success, updated")
+            print(f"dynamo, {cont}, {table_name}, user {key_id}, success, updated")
 
         if not response.get('LastEvaluatedKey', None):
             break
         last_evaluated_key = response['LastEvaluatedKey']
+        break
 
 
-def get_dynamodb_primary_key(table_name):
+def get_dynamodb_primary_key(table_name: str):
     dynamodb = boto3.client('dynamodb')
 
     try:
@@ -62,24 +66,15 @@ def get_dynamodb_primary_key(table_name):
     return primary_key
 
 
-def main(tables):
-    print(f"Clearing content of tables: {tables}")
+def main(table_name: str):
+    print(f"Update content of table: {table_name}")
 
-    for table in tables:
-        key = get_dynamodb_primary_key(table)
-        if key == None:
-            continue
-        clear_all_items(key, table)
-    print(f"Content of tables {tables} cleared")
+    key = get_dynamodb_primary_key(table_name=table_name)
+    update_items(key, table_name)
+    print(f"Content of table {table_name} cleared")
 
 
 if __name__ == '__main__':
-    tables = [
-        "RandomDataTable-0",
-        "RandomDataTable-1",
-        "RandomDataTable-2",
-        "RandomDataTable-3",
-        "RandomDataTable-4",
-    ]
-    main(tables)
+    table_name = "RandomDataTable-0"
+    main(table_name)
 

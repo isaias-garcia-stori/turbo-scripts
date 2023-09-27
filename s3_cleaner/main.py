@@ -44,13 +44,11 @@ def main(buckets):
 
 if __name__ == '__main__':
     buckets = [
-        "sofipo-notification-center-media-dev"
+        "dev-turbo-kyc-auto-vendor-data",
+        "sofipo-batch-data-dev",
+        "deposits-bank-logos-dev",
+        "deposits-contract-location-dev",
+        "dev-turbo-app-doc",
+        "deposits-da-braze-upload-dev",
     ]
-    # buckets = [
-    #     "test-cleaner-01",
-    #     "test-cleaner-02",
-    #     "test-cleaner-03",
-    #     "test-cleaner-04",
-    # ]
     main(buckets)
-

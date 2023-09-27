@@ -43,12 +43,12 @@ def insert_random_data(table_name, num_items):
 
 
 def main():
-    for table in range(5):
+    for table in range(1):
         table_name = f"RandomDataTable-{table}"
         # create_table(table_name)
         # time.sleep(20)
-        print("Waiting")
-        num_items = 2000
+        # print("Waiting")
+        num_items = 20
         insert_random_data(table_name, num_items)
 
         print(f"Inserted {num_items} random items into DynamoDB table")
