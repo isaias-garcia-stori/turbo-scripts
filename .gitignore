@@ -1,0 +1,5 @@
+venv
+file.cvs
+.DS_Store
+*.txt
+*.log

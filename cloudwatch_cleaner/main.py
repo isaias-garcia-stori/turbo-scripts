@@ -1,39 +1,54 @@
 import boto3
-
-def delete_log_group(log_group_name):
-    cloudwatch_logs = boto3.client('logs')
-
-    try: 
-        response = cloudwatch_logs.describe_log_streams(
-        logGroupName=log_group_name)
-    except Exception as e:
-        print(f"cloudwatch  1,{log_group_name}, - ,error,{e}")
-        return
-
-    for log_stream in response['logStreams']:
-        try:
-            log_stream_name = log_stream['logStreamName']
-            cloudwatch_logs.delete_log_stream(
-                logGroupName=log_group_name, logStreamName=log_stream_name)
-        except Exception as e:
-          print(f"cloudwatch,{log_group_name}, - ,error,{e}")
-          return
-        print(f"cloudwatch,{log_group_name}, {log_stream_name} ,success,-")
+import logging
 
 
-def main(log_groups):
-    print(f"Clearing content of log_groups: {log_groups}")
-    for group in log_groups:
-        delete_log_group(group)
-    print(f"Content of log_groups {log_groups} cleared")
+class CloudwatchCleaner:
+    """
+    Class to clear content of cloudwatch log groups
+    """
 
+    def __init__(self, log_groups: list[str], logger: logging.Logger) -> None:
+        """
+        Initialize the class
+        :param log_groups: list of cloudwatch log groups to clear
+        :param logger: logger object
+        """
+        self.log_groups = log_groups
+        self.logger = logger
+        self.client = boto3.client("logs")
 
-if __name__ == '__main__':
-    logs_groups = [
-        "my-log-group-0",
-        "my-log-group-1",
-        "my-log-group-2",
-        "my-log-group-3",
-        "my-log-group-4"
-    ]
-    main(logs_groups)
+    def run(self) -> None:
+        """
+        Clear the content of the log groups
+        """
+        for group in self.log_groups:
+            print(f"Clearing content of log_group: {group}")
+            self.delete_log_group(group)
+            print(f"Content of log_group {group} cleared")
+
+    def delete_log_group(self, log_group_name: str) -> None:
+        """
+        Delete the log group
+        :param log_group_name: name of the log group to clear
+        """
+        while True:
+            try:
+                response = self.client.describe_log_streams(logGroupName=log_group_name)
+                if len(response["logStreams"]) == 0:
+                    break
+            except Exception as e:
+                self.logger.error(f"cloudwatch, {log_group_name}, - , error, {e}")
+                break
+
+            for log_stream in response["logStreams"]:
+                try:
+                    log_stream_name = log_stream["logStreamName"]
+                    self.client.delete_log_stream(
+                        logGroupName=log_group_name, logStreamName=log_stream_name
+                    )
+                except Exception as e:
+                    self.logger.error(f"cloudwatch, {log_group_name}, - , error, {e}")
+                    break
+                self.logger.info(
+                    f"cloudwatch, {log_group_name}, {log_stream_name}, success, -"
+                )
