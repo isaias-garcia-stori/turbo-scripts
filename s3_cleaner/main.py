@@ -33,9 +33,12 @@ class S3Cleaner:
         param: bucket_name: name of the bucket to clear
         return: None
         """
-        bucket = self.s3.Bucket(bucket_name)
+        try:
+            bucket = self.s3.Bucket(bucket_name)
 
-        if bucket.creation_date:
-            bucket.objects.all().delete()
-        else:
-            self.logger.error(f"s3: {bucket_name} not found")
+            if bucket.creation_date:
+                bucket.objects.all().delete()
+            else:
+                self.logger.error(f"s3: {bucket_name} not found")
+        except Exception as e:
+            self.logger.error(f"s3: {bucket_name}, error, {e}")
