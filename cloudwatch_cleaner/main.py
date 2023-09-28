@@ -7,7 +7,7 @@ class CloudwatchCleaner:
     Class to clear content of cloudwatch log groups
     """
 
-    def __init__(self, log_groups: list[str], logger: logging.Logger) -> None:
+    def __init__(self, log_groups: list, logger: logging.Logger) -> None:
         """
         Initialize the class
         :param log_groups: list of cloudwatch log groups to clear

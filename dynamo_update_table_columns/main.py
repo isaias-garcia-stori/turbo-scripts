@@ -8,7 +8,7 @@ class DynamoUpdater:
     Class to update dynamo tables
     """
 
-    def __init__(self, tables_information: list[tuple], logger: logging.Logger) -> None:
+    def __init__(self, tables_information: list, logger: logging.Logger) -> None:
         """
         tables_information: list of tuples with the table name and the fields to update [(str, dict)]
         logger: logger object
