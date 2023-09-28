@@ -14,7 +14,7 @@ class S3Cleaner:
         """
         self.logger = logger
         self.buckets = buckets
-        self.client = boto3.client("s3")
+        self.s3 = boto3.resource("s3")
 
     def run(self) -> None:
         """
@@ -33,32 +33,9 @@ class S3Cleaner:
         param: bucket_name: name of the bucket to clear
         return: None
         """
-        continuation_token = None
-        while True:
-            try:
-                if continuation_token:
-                    response = self.client.list_objects_v2(
-                        Bucket=bucket_name, ContinuationToken=continuation_token
-                    )
-                else:
-                    response = self.client.list_objects_v2(
-                        Bucket=bucket_name,
-                    )
-            except Exception as e:
-                self.logger.error(f"s3: {bucket_name}, error, {e}")
-                break
+        bucket = self.s3.Bucket(bucket_name)
 
-            if "Contents" in response:
-                try:
-                    objects = [{"Key": obj["Key"]} for obj in response["Contents"]]
-                    self.client.delete_objects(
-                        Bucket=bucket_name, Delete={"Objects": objects}
-                    )
-                except Exception as e:
-                    self.logger.error(f"s3: {bucket_name}, error, {e}")
-                    break
-
-            if not response.get("IsTruncated", False):
-                break
-
-            continuation_token = response["NextContinuationToken"]
+        if bucket.creation_date:
+            bucket.objects.all().delete()
+        else:
+            self.logger.error(f"s3: {bucket_name} not found")

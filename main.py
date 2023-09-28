@@ -60,6 +60,7 @@ def build_logger() -> logging.Logger:
 
     return logger
 
+
 logger = build_logger()
 
 if __name__ == "__main__":
