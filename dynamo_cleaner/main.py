@@ -3,7 +3,7 @@ import logging
 
 
 class DynamoCleaner:
-    def __init__(self, tables: list[str], logger: logging.Logger):
+    def __init__(self, tables: list, logger: logging.Logger):
         self.tables = tables
         self.logger = logger
         self.dynamo_client = boto3.client("dynamodb")

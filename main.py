@@ -5,7 +5,6 @@ from s3_cleaner.main import S3Cleaner
 from dynamo_update_table_columns.main import DynamoUpdater
 from dynamo_cleaner.main import DynamoCleaner
 from cognito_cleaner.main import CognitoCleaner
-
 # from cloudwatch_cleaner.main import CloudwatchCleaner
 
 # Define data to be cleared or updated
@@ -51,7 +50,6 @@ def build_logger() -> logging.Logger:
     """
     logging.basicConfig(
         filename="data_clearance.log",
-        encoding="utf-8",
         level=logging.INFO,
         format="%(asctime)s-%(levelname)s-%(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -61,7 +59,6 @@ def build_logger() -> logging.Logger:
     logger.addHandler(handler)
 
     return logger
-
 
 logger = build_logger()
 
